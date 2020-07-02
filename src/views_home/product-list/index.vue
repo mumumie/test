@@ -3,51 +3,53 @@
     <Header title="产品列表" />
     <div class="main">
       <div class="list-search">
-        <el-form ref="form" :model="form" label-width="80px">
-          <el-form-item label="活动名称">
-            <el-input v-model="form.name"></el-input>
+        <el-form ref="form" :model="form" label-width="80px" inline>
+          <el-form-item label="产品名称">
+            <el-input v-model="form.name" style="width:200px;" placeholder="关键字" />
           </el-form-item>
-          <el-form-item label="活动区域">
-            <el-select v-model="form.region" placeholder="请选择活动区域">
-              <el-option label="区域一" value="shanghai"></el-option>
-              <el-option label="区域二" value="beijing"></el-option>
+          <el-form-item label="产品类型">
+            <el-select v-model="form.type" placeholder="产品类型" clearable>
+              <el-option label="钢筋" :value="1" />
+              <el-option label="水泥" :value="2" />
+              <el-option label="设备" :value="3" />
             </el-select>
           </el-form-item>
-          <el-form-item label="活动时间">
-            <el-col :span="11">
-              <el-date-picker type="date" placeholder="选择日期" v-model="form.date1" style="width: 100%;"></el-date-picker>
-            </el-col>
-            <el-col class="line" :span="2" style="text-align: center;">-</el-col>
-            <el-col :span="11">
-              <el-time-picker placeholder="选择时间" v-model="form.date2" style="width: 100%;"></el-time-picker>
-            </el-col>
+          <el-form-item label="发布时间">
+            <el-date-picker
+              v-model="date"
+              type="daterange"
+              value-format="timestamp"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+            />
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="onSubmit">搜索</el-button>
-            <el-button>清空</el-button>
+            <el-button @click="clearHandle">清空</el-button>
           </el-form-item>
         </el-form>
       </div>
       <div class="list-box">
         <div v-for="item in productList" :key="item.id" class="list-content">
           <div class="list-detail" @click="toPath(item)">
-            <div>产品名称：{{item.name}}</div>
-            <div>地址：{{item.location}}</div>
-            <div>IP：{{item.ip}}</div>
-            <div>数量：{{item.count}}</div>
+            <div>产品名称：{{ item.name }}</div>
+            <div>地址：{{ item.location }}</div>
+            <div>IP：{{ item.ip }}</div>
+            <div>数量：{{ item.count }}</div>
           </div>
         </div>
       </div>
       <div class="pages-box">
         <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
           :current-page="postData.pageno + 1"
-          :page-sizes="[5, 10, 20, 50, 100]"
+          :page-sizes="[8, 12, 16, 32, 64]"
           :page-size="postData.pagesize"
           layout="total, sizes, prev, pager, next, jumper"
-          :total="pageTotal">
-        </el-pagination>
+          :total="pageTotal"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
       </div>
     </div>
   </div>
@@ -63,13 +65,15 @@ export default {
     return {
       form: {
         name: '',
-        region: '',
-        date: '',
+        count: '',
+        type: '',
+        date1: '',
         date2: ''
       },
+      date: null,
       postData: {
         typeName: 'Device',
-        pagesize: 5,
+        pagesize: 8,
         pageno: 0
       },
       currentPage: 1,
@@ -78,17 +82,43 @@ export default {
       productList: []
     }
   },
+  watch: {
+    date(val) {
+      if (val && val.length === 2) {
+        this.form.date1 = val[0]
+        this.form.date2 = val[1] + 24 * 60 * 60 * 1000
+      } else {
+        this.form.date1 = ''
+        this.form.date2 = ''
+      }
+    }
+  },
   created() {
     this.getInfo()
   },
   methods: {
+    clearHandle() {
+      this.$refs.form.resetFields()
+    },
     toPath(row) {
       this.$router.push({ path: 'product-detail', query: { id: row.id }})
     },
     onSubmit() {
+      this.postData.pageno = 0
+      this.getInfo()
     },
     getInfo() {
-      this.$ajax.vpost('/queryBean', this.postData).then(res => {
+      const params = Object.assign(this.postData, { condition: {}})
+      if (this.form.name) {
+        params.condition['name$regex'] = this.form.name
+      }
+      if (this.form.type) {
+        params.condition['type'] = this.form.type
+      }
+      if (this.form.date1) {
+        params.condition['lastWarnTime$in'] = [this.form.date1, this.form.date2]
+      }
+      this.$ajax.vpost('/queryBean', params).then(res => {
         this.productList = res.bean.data
         this.pageTotal = res.bean.total
       }).catch(() => {})
