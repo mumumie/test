@@ -51,20 +51,26 @@ const constantRouter = [
     path: '/',
     component: () => import('@/views_home/home/index'),
     hidden: true,
-    meta: { title: '产品首页', icon: 'user', noCache: true}
+    meta: { title: '产品首页', icon: 'user', noCache: true }
   },
   {
     path: '/product-list',
     component: () => import('@/views_home/product-list/index'),
     hidden: true,
-    meta: { title: '产品列表', icon: 'user', noCache: true}
+    meta: { title: '产品列表', icon: 'user', noCache: true }
+  },
+  {
+    path: '/demand-list',
+    component: () => import('@/views_home/demand-list/index'),
+    hidden: true,
+    meta: { title: '需求列表', icon: 'user', noCache: true }
   },
   {
     path: '/product-detail',
     name: 'product-detail',
     component: () => import('@/views_home/product-detail/index'),
     hidden: true,
-    meta: { title: '产品详情', icon: 'user', noCache: true}
+    meta: { title: '产品详情', icon: 'user', noCache: true }
   },
   {
     path: '/documentation',

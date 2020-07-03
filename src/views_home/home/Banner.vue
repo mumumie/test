@@ -3,20 +3,25 @@
     <div class="logo-img">logo</div>
     <div class="search-box">
       <el-input v-model="keyword" placeholder="请输入关键字..." class="keyword" />
-      <el-button type="primary" class="btn">搜索</el-button>
+      <el-button type="primary" class="btn" @click="searchBtn">搜索</el-button>
     </div>
   </div>
 </template>
 
 <script>
-  export default {
-    name: 'Banner',
-    data() {
-      return {
-        keyword: ''
-      }
+export default {
+  name: 'Banner',
+  data() {
+    return {
+      keyword: ''
+    }
+  },
+  methods: {
+    searchBtn() {
+      this.$router.push({ path: '/product-list', query: { keyword: this.keyword }})
     }
   }
+}
 </script>
 
 <style scoped>

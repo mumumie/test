@@ -11,7 +11,7 @@
       active-text-color="#fff">
       <el-menu-item index="/">首页</el-menu-item>
       <el-menu-item index="/product-list">供方产品</el-menu-item>
-      <el-menu-item index="/product-list">需方产品</el-menu-item>
+      <el-menu-item index="/demand-list">需方产品</el-menu-item>
       <!--      <el-submenu index="2">-->
       <!--        <template slot="title">供方</template>-->
       <!--        <el-menu-item index="2-1">选项1</el-menu-item>-->
@@ -29,19 +29,19 @@
 </template>
 
 <script>
-  export default {
-    name: 'NavBar',
-    data() {
-      return {
-        activeIndex: '/'
-      };
-    },
-    methods: {
-      handleSelect(key, keyPath) {
-        console.log(key, keyPath);
-      }
+export default {
+  name: 'NavBar',
+  data() {
+    return {
+      activeIndex: '/'
+    }
+  },
+  methods: {
+    handleSelect(key, keyPath) {
+      console.log(key, keyPath)
     }
   }
+}
 </script>
 
 <style scoped>

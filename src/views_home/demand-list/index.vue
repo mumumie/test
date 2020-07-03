@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <Header title="产品列表-叠合楼板" />
+    <Header title="需求列表-叠合楼板" />
     <div class="main">
       <div class="list-search">
         <el-form ref="form" :model="form" label-width="80px" inline>
@@ -67,7 +67,7 @@ export default {
   data() {
     return {
       form: {
-        name: this.$route.query.keyword || '',
+        name: '',
         date1: '',
         date2: ''
       },

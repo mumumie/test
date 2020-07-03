@@ -9,20 +9,20 @@
         <tr>
           <td class="bg">产品名称</td>
           <td>{{ productInfo.name }}</td>
-          <td class="bg">产品地址</td>
-          <td>{{ productInfo.location }}</td>
+          <td class="bg">产品长度a</td>
+          <td>{{ productInfo.length }}</td>
         </tr>
         <tr>
-          <td class="bg">产品数量</td>
-          <td>{{ productInfo.count }}</td>
-          <td class="bg">产品IP</td>
-          <td>{{ productInfo.ip }}</td>
+          <td class="bg">产品宽度b</td>
+          <td>{{ productInfo.width }}</td>
+          <td class="bg">产品厚度H</td>
+          <td>{{ productInfo.height }}</td>
         </tr>
         <tr>
-          <td class="bg">产品编号</td>
-          <td>{{ productInfo.id }}</td>
-          <td class="bg">产品类型</td>
-          <td>{{ productType[productInfo.type] }}</td>
+          <td class="bg">a边伸筋(0,1)</td>
+          <td>{{ productInfo.absj }}</td>
+          <td class="bg">b边伸筋(0,1)</td>
+          <td>{{ productInfo.bbsj }}</td>
         </tr>
       </table>
     </div>
@@ -47,7 +47,7 @@ export default {
   methods: {
     getProduct() {
       const params = {
-        typeName: 'Device',
+        typeName: this.$route.query.typeName,
         id: this.$route.query.id
       }
       this.$ajax.vpost('getBean', params).then(res => {
