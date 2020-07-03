@@ -4,16 +4,14 @@
     <div class="main">
       <div class="list-search">
         <el-form ref="form" :model="form" label-width="80px" inline>
+          <el-form-item label="产品类型">
+            <el-select v-model="form.type" placeholder="产品类型" clearable>
+              <el-option v-for="item in productTypeList" :key="item.id" :label="item.name" :value="1" />
+            </el-select>
+          </el-form-item>
           <el-form-item label="产品名称">
             <el-input v-model="form.name" style="width:200px;" placeholder="关键字" />
           </el-form-item>
-<!--          <el-form-item label="产品类型">-->
-<!--            <el-select v-model="form.type" placeholder="产品类型" clearable>-->
-<!--              <el-option label="钢筋" :value="1" />-->
-<!--              <el-option label="水泥" :value="2" />-->
-<!--              <el-option label="设备" :value="3" />-->
-<!--            </el-select>-->
-<!--          </el-form-item>-->
           <el-form-item label="发布时间">
             <el-date-picker
               v-model="date"
@@ -41,7 +39,7 @@
             <div>b边伸筋（0，1）：{{ item.bbsj }}</div>
           </div>
         </div>
-        <div class="list-none" v-if="productList.length === 0">暂无数据！</div>
+        <div v-if="productList.length === 0" class="list-none">暂无数据！</div>
       </div>
       <div class="pages-box">
         <el-pagination
@@ -80,7 +78,8 @@ export default {
       currentPage: 1,
       currentPagesize: 10,
       pageTotal: 0,
-      productList: []
+      productList: [],
+      productTypeList: []
     }
   },
   watch: {
@@ -95,9 +94,20 @@ export default {
     }
   },
   created() {
+    this.getProductType()
     this.getInfo()
   },
   methods: {
+    getProductType() {
+      const postData = {
+        typeName: 'ProductType',
+        pagesize: 4,
+        pageno: 0
+      }
+      this.$ajax.vpost('/queryBean', postData).then(res => {
+        this.productTypeList = res.bean.data
+      }).catch(() => {})
+    },
     clearHandle() {
       this.form = {
         name: '',
@@ -131,7 +141,7 @@ export default {
         params.condition['type'] = this.form.type
       }
       if (this.form.date1) {
-        params.condition['lastWarnTime$in'] = [this.form.date1, this.form.date2]
+        params.condition['insertDt$in'] = [this.form.date1, this.form.date2]
       }
       this.$ajax.vpost('/queryBean', params).then(res => {
         this.productList = res.bean.data
