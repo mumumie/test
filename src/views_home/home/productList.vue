@@ -39,7 +39,7 @@ export default {
   },
   methods: {
     selectHandle(row) {
-      this.$router.push({ path: this.path, query: { type: row.id }})
+      this.$router.push({ path: this.path, query: { type: row.className }})
     }
   }
 }

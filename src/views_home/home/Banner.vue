@@ -25,8 +25,8 @@ export default {
       keyword: '',
       navInfo: [
         { id: 1, name: '首页', path: '/' },
-        { id: 2, name: '供方产品', path: '/product' },
-        { id: 3, name: '需方产品', path: '/demand' },
+        { id: 2, name: '供方产品', path: '/product-list' },
+        { id: 3, name: '需方产品', path: '/demand-list' },
         { id: 4, name: '关于我们', path: '/' },
         { id: 5, name: '联系我们', path: '/' }
       ]

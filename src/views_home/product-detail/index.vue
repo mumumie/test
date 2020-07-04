@@ -5,26 +5,31 @@
       <div class="title">
         {{ productInfo.name }}
       </div>
-      <table class="content">
-        <tr>
-          <td class="bg">产品名称</td>
-          <td>{{ productInfo.name }}</td>
-          <td class="bg">产品长度a</td>
-          <td>{{ productInfo.length }}</td>
-        </tr>
-        <tr>
-          <td class="bg">产品宽度b</td>
-          <td>{{ productInfo.width }}</td>
-          <td class="bg">产品厚度H</td>
-          <td>{{ productInfo.height }}</td>
-        </tr>
-        <tr>
-          <td class="bg">a边伸筋(0,1)</td>
-          <td>{{ productInfo.absj }}</td>
-          <td class="bg">b边伸筋(0,1)</td>
-          <td>{{ productInfo.bbsj }}</td>
-        </tr>
-      </table>
+      <div class="content">
+        <div v-for="item in keyInfo" :key="item.name" class="list">
+          <div>{{ item.zhName }}</div>
+          <div v-if="item.zhName === '附件'">
+            <a :href="productInfo[item.name][1]" target="_blank">{{ filterFile(productInfo[item.name]) }}</a>
+          </div>
+          <div v-else-if="item.fieldType === 'RADIO'">
+            {{ item.verifyDesc[productInfo[item.name]] }}
+          </div>
+          <div v-else-if="item.fieldType === 'DATE'">
+            {{ productInfo[item.name] | formatDate('yyyy-MM-dd hh : mm') }}
+          </div>
+          <div v-else>
+            {{ productInfo[item.name] + (item.unit || '') }}
+          </div>
+        </div>
+      </div>
+      <!--      <table class="content" v-if="keyInfo.length > 0">-->
+      <!--        <tr v-for="(item, index) in keyInfo" :key="index">-->
+      <!--          <template v-for="obj in item">-->
+      <!--            <td class="bg" :key="obj.name">{{obj.zhName}}</td>-->
+      <!--            <td :key="obj.name">{{ productInfo[obj.name] }}</td>-->
+      <!--          </template>-->
+      <!--        </tr>-->
+      <!--      </table>-->
     </div>
   </div>
 </template>
@@ -38,13 +43,45 @@ export default {
   data() {
     return {
       productInfo: {},
-      productType: ['-', '钢筋', '水泥', '设备']
+      keyInfo: []
     }
   },
   created() {
     this.getProduct()
+    this.getTableInfo()
   },
   methods: {
+    filterFile(val) {
+      if (val[1]) {
+        const arr = val[1].split('/')
+        return arr[arr.length - 1]
+      } else {
+        return '-'
+      }
+    },
+    getTableInfo() {
+      const params = {
+        typeName: this.$route.query.typeName
+      }
+      return new Promise((resolve, reject) => {
+        this.$ajax.vpost('getTableInfo', params).then(res => {
+          // console.log(res.bean.fieldProps)
+          // res.bean.fieldProps.forEach((v, i) => {
+          //   console.log(i / 2)
+          //   console.log(i % 2)
+          //   if (i % 2 === 0) {
+          //     this.$set(this.keyInfo, i / 2, [])
+          //   }
+          //   this.keyInfo[parseInt(i / 2)][(i % 2)] = v
+          // })
+          // console.log(this.keyInfo)
+          this.keyInfo = res.bean.fieldProps
+          resolve()
+        }).catch(err => {
+          reject(err)
+        })
+      })
+    },
     getProduct() {
       const params = {
         typeName: this.$route.query.typeName,
@@ -62,7 +99,9 @@ export default {
 <style scoped>
   .main{width:1200px;margin: 30px auto;}
   .title{line-height: 50px;font-size: 23px;font-weight: bold;text-align: center;}
-  .content{width:100%;border-top:1px solid  #eee;border-left:1px solid #eee;border-collapse: collapse;border-spacing: 0;margin-top:10px;}
-  .content td.bg{background: #f8f8f8;width:130px;text-align: center;}
-  .content td{padding: 12px; line-height:28px;border-bottom:1px solid #eee;border-right:1px solid #eee;}
+  .content{width:100%;border-top:1px solid  #eee;border-left:1px solid #eee;display: flex;flex-wrap: wrap;margin-top:20px;}
+  .content .list{width:50%;display: flex;line-height: 40px;}
+  .content .list div{border-right:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;}
+  .content .list div:first-child{width:200px;flex: none;background: #f8f8f8;padding:0 20px;}
+  .content .list div:last-child{width:400px;flex: auto;padding:0 20px;box-sizing: border-box;}
 </style>
