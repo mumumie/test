@@ -1,6 +1,7 @@
 <template>
   <div class="container">
-    <Header :title="'产品列表-' + typeName" />
+    <Header />
+    <Banner :class-active="3" />
     <div class="main">
       <div class="nav-left">
         <div class="nav-title">产品分类</div>
@@ -24,6 +25,8 @@
             <span>生产地址</span>
             <el-input v-model="form.productAddress" size="mini" style="width:200px;" placeholder="关键字" />
             <el-button type="primary" size="mini" style="margin-left:20px;" @click="onSubmit">搜索</el-button>
+            <el-button type="primary" size="mini" style="margin-left:20px;" @click="exportFile">导出</el-button>
+            <el-button type="primary" size="mini" style="margin-left:20px;" @click="importFile">导入</el-button>
           </div>
           <div v-for="item in searchData" :key="item.value" class="search-filter">
             <div class="title">{{ item.title }}</div>
@@ -53,12 +56,13 @@
           <div v-for="item in productList" :key="item.id" class="list-content">
             <div class="list-detail" @click="toPath(item)">
               <div>产品名称：{{ item.name }}</div>
-              <div>产品长度a：{{ item.length }}</div>
-              <div>产品宽度b：{{ item.width }}</div>
-              <div>产品厚度H：{{ item.height }}</div>
-              <div>a边伸筋（0，1）：{{ item.absj }}</div>
-              <div>b边伸筋（0，1）：{{ item.bbsj }}</div>
-              <div>生产地址：{{ item.productAddress }}</div>
+              <div v-for="{ value } in searchData" :key="value">{{ valueName[value] + ':' + item[value] }}</div>
+              <!--              <div>产品长度a：{{ item.length }}</div>-->
+              <!--              <div>产品宽度b：{{ item.width }}</div>-->
+              <!--              <div>产品厚度H：{{ item.height }}</div>-->
+              <!--              <div>a边伸筋（0，1）：{{ item.absj }}</div>-->
+              <!--              <div>b边伸筋（0，1）：{{ item.bbsj }}</div>-->
+              <!--              <div>生产地址：{{ item.productAddress }}</div>-->
             </div>
           </div>
           <div v-if="productList.length === 0" class="list-none">暂无数据！</div>
@@ -76,6 +80,12 @@
         </div>
       </div>
     </div>
+    <upload-file
+      :type-name="postData.typeName"
+      :switch-btn="switchBtn"
+      @close="switchBtn = false"
+      @success="importSuccess"
+    />
   </div>
 </template>
 
@@ -83,7 +93,9 @@
 export default {
   name: 'ProductList',
   components: {
-    Header: () => import('../home/Header')
+    Header: () => import('../home/Header'),
+    Banner: () => import('../home/Banner'),
+    uploadFile: () => import('./uploadFile')
   },
   data() {
     return {
@@ -92,7 +104,15 @@ export default {
         productAddress: this.$route.query.productAddress || '',
         length: this.$route.query.length || '',
         width: this.$route.query.width || '',
-        height: this.$route.query.height || ''
+        height: this.$route.query.height || '',
+        ak_3: this.$route.query.ak_3 || '',
+        scj_1: this.$route.query.scj_1 || '',
+        scj_2: this.$route.query.scj_2 || '',
+        bhc_rh1: this.$route.query.bhc_rh1 || '',
+        a_bsj_rd1: this.$route.query.a_bsj_rd1 || '',
+        a_bsj_rs1: this.$route.query.a_bsj_rs1 || '',
+        b_bsj_rd2: this.$route.query.b_bsj_rd2 || '',
+        b_bsj_rs1: this.$route.query.b_bsj_rs1 || ''
       },
       date: null,
       postData: {
@@ -100,8 +120,6 @@ export default {
         pagesize: 8,
         pageno: 0
       },
-      currentPage: 1,
-      currentPagesize: 10,
       pageTotal: 0,
       productList: [],
       productTypeList: [],
@@ -109,16 +127,48 @@ export default {
       searchData: [
         { title: '长度a(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'length', input: [null, null] },
         { title: '宽度b(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'width', input: [null, null] },
-        { title: '厚度H(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'height', input: [null, null] }
+        { title: '厚度H(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'height', input: [null, null] },
+        { title: '凹口深度h1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'ak_3', input: [null, null] },
+        { title: '伸出筋直径rd1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_1', input: [null, null] },
+        { title: '伸出筋根数rm', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_2', input: [null, null] }
       ],
+      typeSearchData: {
+        P_dhkjl: [
+          { title: '长度a(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'length', input: [null, null] },
+          { title: '宽度b(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'width', input: [null, null] },
+          { title: '厚度H(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'height', input: [null, null] },
+          { title: '凹口深度h1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'ak_3', input: [null, null] },
+          { title: '伸出筋直径rd1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_1', input: [null, null] },
+          { title: '伸出筋根数rm', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_2', input: [null, null] }
+        ],
+        P_dhlb: [
+          { title: '长度a(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'length', input: [null, null] },
+          { title: '宽度b(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'width', input: [null, null] },
+          { title: '厚度H(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'height', input: [null, null] },
+          { title: '保护层厚度rh1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'bhc_rh1', input: [null, null] },
+          { title: 'a边伸筋直径rd1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'a_bsj_rd1', input: [null, null] },
+          { title: 'a边伸筋间距rs1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'a_bsj_rs1', input: [null, null] },
+          { title: 'b边伸筋直径rd2', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'b_bsj_rd2', input: [null, null] },
+          { title: 'b边伸筋间距rs1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'b_bsj_rs1', input: [null, null] }
+        ]
+      },
       searchCondition: [],
       valueName: {
         length: '长度a',
         width: '宽度b',
         height: '厚度H',
         name: '产品名称',
-        productAddress: '生产地址'
-      }
+        productAddress: '生产地址',
+        ak_3: '凹口深度h1',
+        scj_1: '伸出筋直径rd1',
+        scj_2: '伸出筋根数rm',
+        bhc_rh1: '保护层厚度rh1',
+        a_bsj_rd1: 'a边伸筋直径rd1',
+        a_bsj_rs1: 'a边伸筋间距rs1',
+        b_bsj_rd2: 'b边伸筋直径rd2',
+        b_bsj_rs1: 'b边伸筋间距rs1'
+      },
+      switchBtn: false
     }
   },
   watch: {
@@ -136,10 +186,12 @@ export default {
         if (val.length > 0) {
           if (this.postData.typeName) {
             const row = val.find(v => v.className === this.postData.typeName)
+            this.searchData = this.typeSearchData[row.className]
             this.typeName = row.name
           } else {
             this.typeName = val[0].name
             this.postData.typeName = val[0].className
+            this.searchData = this.typeSearchData[val[0].className]
           }
         }
       },
@@ -153,9 +205,24 @@ export default {
     })
   },
   methods: {
+    importSuccess() {
+      this.$message.success('导入成功！')
+      this.switchBtn = false
+    },
+    // 导入文件
+    importFile() {
+      this.switchBtn = true
+    },
+    // 导出文件
+    exportFile() {
+      window.open(`http://139.224.234.131:8088/getExcelTemp?typeName=${this.postData.typeName}`, '_blank')
+    },
     initSearchData() {
       const query = this.$route.query
       for (const key in query) {
+        if (key !== 'type') {
+          this.searchCondition.push({ label: key, value: query[key] })
+        }
         const index = this.searchData.findIndex(v => v.value === key)
         if (index > -1) {
           if (query[key].indexOf('-') > -1) {
@@ -171,13 +238,9 @@ export default {
     },
     deleteSearchCondition(val) {
       if (val === 'all') {
-        this.form = {
-          name: '',
-          productAddress: '',
-          length: '',
-          width: '',
-          height: ''
-        }
+        Object.keys(this.valueName).forEach(key => {
+          this.form[key] = null
+        })
         this.searchCondition = []
         this.searchData.map(v => {
           v.input = [null, null]
@@ -236,13 +299,18 @@ export default {
     typeNameChange(row) {
       this.postData.typeName = row.className
       this.typeName = row.name
+      Object.keys(this.valueName).forEach(key => {
+        this.form[key] = null
+      })
+      this.searchCondition = []
+      this.searchData = this.typeSearchData[row.className]
       this.postData.pageno = 0
       this.getInfo()
     },
     getProductType() {
       const postData = {
         typeName: 'ProductType',
-        pagesize: 4,
+        pagesize: 10,
         pageno: 0
       }
       return new Promise((resolve, reject) => {
@@ -381,14 +449,14 @@ export default {
   .search-input{padding:0 20px;line-height: 40px;}
   .search-input span{padding:0 10px;}
   .search-filter{display: flex;height:40px;align-items: center;border-top:1px solid #e0e0e0;}
-  .search-filter .title{ width:120px;flex:none;padding-left:20px;background: #f8f8f8;line-height: 39px;border-right:1px solid #e0e0e0;}
+  .search-filter .title{ width:120px;flex:none;padding-left:10px;background: #f8f8f8;line-height: 39px;border-right:1px solid #e0e0e0;}
   .search-filter .condition{ width:105px;flex:none;margin-left:10px;}
   .search-filter .condition span{display: inline-block;padding:0 10px; line-height: 26px;cursor: pointer;border:1px solid transparent;}
   .search-filter .condition span:hover,.search-filter .condition span.active{border:1px solid #FF6C00;color:#FF6C00;}
   .search-filter .input{ margin-left: auto;margin-right:20px;}
   .search-condition{display: flex;border-top:1px solid #e0e0e0;align-items: flex-start;line-height: 40px;}
   .search-condition .title{width:120px;padding-left:20px;flex:none;}
-  .search-condition .condition{display: flex;align-items: center;}
+  .search-condition .condition{display: flex;align-items: center;flex-wrap: wrap;padding-bottom: 7px;}
   .search-condition .condition .msgbox{padding:0 26px 0 10px;border:1px solid #e0e0e0;line-height: 26px;margin-top:7px;position:relative;margin-right:10px;cursor: pointer;}
   .search-condition .condition .msgbox:hover{border-color:#f00;}
   .search-condition .condition .msgbox i{position:absolute;cursor: pointer;top:6px;right:6px;}
@@ -398,6 +466,6 @@ export default {
   .list-content{width:25%;}
   .list-detail{padding:20px;margin:5px;border:1px solid #e0e0e0;border-radius: 4px;cursor: pointer;}
   .list-detail:hover{box-shadow: 0 2px 12px 0 rgba(0, 0, 0, .1);}
-  .list-detail > div{line-height: 30px;}
+  .list-detail > div{line-height: 30px;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;}
   .pages-box{text-align: center;margin:20px 0;}
 </style>

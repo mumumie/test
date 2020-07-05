@@ -12,7 +12,6 @@
       <!--        </el-carousel-item>-->
       <!--      </el-carousel>-->
     </div>
-
   </div>
 </template>
 
