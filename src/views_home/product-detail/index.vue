@@ -9,7 +9,10 @@
         <div v-for="item in keyInfo" :key="item.name" class="list">
           <div>{{ item.zhName }}</div>
           <div v-if="item.zhName === '附件'">
-            <a :href="productInfo[item.name][1]" target="_blank">{{ filterFile(productInfo[item.name]) }}</a>
+            <p v-for="(file, i) in productInfo[item.name]" :key="i">
+              <a :href="file" target="_blank"><i class="el-icon-folder" />{{ filterFile(file) }}</a>
+            </p>
+
           </div>
           <div v-else-if="item.fieldType === 'RADIO'">
             {{ item.verifyDesc[productInfo[item.name]] }}
@@ -52,8 +55,8 @@ export default {
   },
   methods: {
     filterFile(val) {
-      if (val[1]) {
-        const arr = val[1].split('/')
+      if (val) {
+        const arr = val.split('/')
         return arr[arr.length - 1]
       } else {
         return '-'
@@ -102,6 +105,8 @@ export default {
   .content{width:100%;border-top:1px solid  #eee;border-left:1px solid #eee;display: flex;flex-wrap: wrap;margin-top:20px;}
   .content .list{width:50%;display: flex;line-height: 40px;}
   .content .list div{border-right:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;}
-  .content .list div:first-child{width:200px;flex: none;background: #f8f8f8;padding:0 20px;}
-  .content .list div:last-child{width:400px;flex: auto;padding:0 20px;box-sizing: border-box;}
+  .content .list > div:first-child{width:200px;flex: none;background: #f8f8f8;padding:0 20px;}
+  .content .list > div:last-child{width:400px;flex: auto;padding:0 20px;box-sizing: border-box;}
+  .content a{text-decoration: underline;color:#1890ff;}
+  .content a:hover{color:#f00;}
 </style>

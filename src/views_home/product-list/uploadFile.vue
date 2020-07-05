@@ -65,15 +65,16 @@ export default {
       return isJPG && isLt2M
     },
     handleChange(file, fileList) {
-      console.log(fileList)
       this.fileList = fileList.slice(-1)
     },
     handleRemove(file, fileList) {
-      console.log(fileList)
       this.fileList = fileList
     },
     submitUpload() {
-      console.log(this.fileList)
+      if (this.fileList.length === 0) {
+        this.$message.error('上传文件不能为空！')
+        return
+      }
       const fileType = this.fileList[0].name.split('.')
       if (!['xls', 'xlsx'].includes(fileType[ fileType.length - 1 ])) {
         this.$message.error('上传文件类型必须是xls或xlsx!')
@@ -82,8 +83,14 @@ export default {
       const formData = new FormData()
       formData.append('file', this.fileList[0].raw)
       formData.append('typeName', this.typeName)
-      axios.post('http://139.224.234.131:8088/importExcelData', formData, { 'Content-Type': 'multipart/form-data' }).then(() => {
-        this.$emit('success')
+      axios.post('http://139.224.234.131:8088/importExcelData', formData, { 'Content-Type': 'multipart/form-data' }).then(res => {
+        if (res.data.retCode === 0) {
+          this.$emit('success')
+        } else {
+          this.$message.error(res.data.retMsg)
+        }
+      }).catch(err => {
+        this.$message.error(err.data.retMsg)
       })
       // const isLt2M = this.fileList[0].size / 1024 / 1024 < 2
       // if (!isLt2M) {
