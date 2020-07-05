@@ -25,8 +25,14 @@
             <span>生产地址</span>
             <el-input v-model="form.productAddress" size="mini" style="width:200px;" placeholder="关键字" />
             <el-button type="primary" size="mini" style="margin-left:20px;" @click="onSubmit">搜索</el-button>
-            <el-button type="primary" size="mini" style="margin-left:20px;" @click="exportFile">导出</el-button>
-            <el-button type="primary" size="mini" style="margin-left:20px;" @click="importFile">导入</el-button>
+            <el-button type="primary" icon="el-icon-download" size="mini" style="margin-left:20px;" @click="exportFile">下载构件excel模板</el-button>
+            <el-button type="primary" icon="el-icon-upload2" size="mini" style="margin-left:20px;" @click="importFile">导入构件</el-button>
+            <!--            <el-tooltip class="item" effect="dark" content="下载构件excel模板" placement="top">-->
+            <!--              <el-button type="primary" icon="el-icon-download" size="mini" style="margin-left:20px;" @click="exportFile">下载构件excel模板</el-button>-->
+            <!--            </el-tooltip>-->
+            <!--            <el-tooltip class="item" effect="dark" content="导入构件" placement="top">-->
+            <!--              <el-button type="primary" icon="el-icon-upload2" size="mini" style="margin-left:20px;" @click="importFile">导入构件</el-button>-->
+            <!--            </el-tooltip>-->
           </div>
           <div v-for="item in searchData" :key="item.value" class="search-filter">
             <div class="title">{{ item.title }}</div>
