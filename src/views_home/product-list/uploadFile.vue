@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="提示"
+    title="上传文件"
     :visible.sync="dialogVisible"
     width="500px"
     :close-on-click-modal="false"

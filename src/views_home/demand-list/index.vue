@@ -67,19 +67,42 @@
           </div>
         </div>
         <div class="list-box">
-          <div v-for="item in productList" :key="item.id" class="list-content">
-            <div class="list-detail" @click="toPath(item)">
-              <div>产品名称：{{ item.name }}</div>
-              <div v-for="{ value } in searchData" :key="value">{{ valueName[value] + ':' + item[value] }}</div>
-              <!--              <div>产品长度a：{{ item.length }}</div>-->
-              <!--              <div>产品宽度b：{{ item.width }}</div>-->
-              <!--              <div>产品厚度H：{{ item.height }}</div>-->
-              <!--              <div>a边伸筋（0，1）：{{ item.absj }}</div>-->
-              <!--              <div>b边伸筋（0，1）：{{ item.bbsj }}</div>-->
-              <!--              <div>生产地址：{{ item.productAddress }}</div>-->
-            </div>
+          <div class="table-btn">
+            <el-button size="mini" @click="setTable">设置表头</el-button>
           </div>
-          <div v-if="productList.length === 0" class="list-none">暂无数据！</div>
+          <el-table
+            v-if="productList.length !== 0"
+            :data="productList"
+            size="mini"
+            stripe
+            border
+            v-loading="loading"
+            :header-cell-style="{background:'#F3F4F7',color:'#555'}"
+            :row-style="{cursor:'pointer'}"
+            @row-click="toPath"
+            @selection-change="handleSelectionChange"
+            style="width: 100%">
+            <el-table-column
+              type="selection"
+              width="45">
+            </el-table-column>
+            <el-table-column
+              show-overflow-tooltip
+              header-align="center"
+              v-for="column in keyInfo.filter(v => v.show)"
+              :key="column.name"
+              :prop="column.name"
+              :label="column.zhName"
+              :min-width="column.zhName.length * 15 + 20">
+            </el-table-column>
+          </el-table>
+<!--          <div v-for="item in productList" :key="item.id" class="list-content">-->
+<!--            <div class="list-detail" @click="toPath(item)">-->
+<!--              <div>产品名称：{{ item.name }}</div>-->
+<!--              <div v-for="{ value } in searchData" :key="value">{{ valueName[value] + ':' + item[value] }}</div>-->
+<!--            </div>-->
+<!--          </div>-->
+          <div v-if="productList.length === 0 && !loading" class="list-none">暂无数据！</div>
         </div>
         <div class="pages-box">
           <el-pagination
@@ -100,6 +123,13 @@
       @close="switchBtn = false"
       @success="importSuccess"
     />
+    <!--    设置表头-->
+    <set-table-header
+      :keyInfo="keyInfo"
+      :switch-btn="setSwitchBtn"
+      @close="setSwitchBtn = false"
+      @success="setSuccess"
+    />
   </div>
 </template>
 
@@ -109,7 +139,8 @@ export default {
   components: {
     Header: () => import('../home/Header'),
     Banner: () => import('../home/Banner'),
-    uploadFile: () => import('../product-list/uploadFile')
+    uploadFile: () => import('../product-list/uploadFile'),
+    setTableHeader: () => import('../product-list/setTableHeader')
   },
   data() {
     return {
@@ -183,19 +214,14 @@ export default {
         b_bsj_rs1: 'b边伸筋间距rs1',
         updateDt: '供货时间'
       },
-      switchBtn: false
+      switchBtn: false,
+      setSwitchBtn: false, // 表头设置
+      multipleSelection: [],
+      keyInfo: [], // 表字段
+      loading: false
     }
   },
   watch: {
-    // date(val) {
-    //   if (val && val.length === 2) {
-    //     this.form.date1 = val[0]
-    //     this.form.date2 = val[1] + 24 * 60 * 60 * 1000
-    //   } else {
-    //     this.form.date1 = ''
-    //     this.form.date2 = ''
-    //   }
-    // },
     productTypeList: {
       handler(val) {
         if (val.length > 0) {
@@ -216,10 +242,45 @@ export default {
   created() {
     this.getProductType().then(() => {
       this.initSearchData()
-      this.getInfo()
+      this.getTableInfo().then(() => {
+        this.getInfo()
+      })
     })
   },
   methods: {
+    setSuccess(val) {
+      this.keyInfo.map(v => {
+        if (val.includes(v.name)) {
+          v.show = true
+        } else {
+          v.show = false
+        }
+      })
+      this.setSwitchBtn = false
+    },
+    setTable() {
+      this.setSwitchBtn = true
+    },
+    // 获取产品类型表字段
+    getTableInfo() {
+      const params = {
+        typeName: this.postData.typeName
+      }
+      return new Promise((resolve, reject) => {
+        this.$ajax.vpost('getTableInfo', params).then(res => {
+          this.keyInfo = res.bean.fieldProps.map(v => {
+            v.show = true
+            return v
+          })
+          resolve()
+        }).catch(err => {
+          reject(err)
+        })
+      })
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val
+    },
     importSuccess() {
       this.$message.success('导入成功！')
       this.switchBtn = false
@@ -272,6 +333,7 @@ export default {
         this.searchCondition.splice(this.searchCondition.findIndex(v => v.label === val), 1)
         this.searchData.find(v => v.value === val).input = [null, null]
       }
+      this.postData.pageno = 0
       this.getInfo()
     },
     Arrayfilter(arr) {
@@ -313,6 +375,7 @@ export default {
       if (val) {
         this.searchCondition.push({ label: row.value, value: val })
       }
+      this.postData.pageno = 0
       this.getInfo()
     },
     typeNameChange(row) {
@@ -324,7 +387,9 @@ export default {
       this.searchCondition = []
       this.searchData = this.typeSearchData[row.className]
       this.postData.pageno = 0
-      this.getInfo()
+      this.getTableInfo().then(() => {
+        this.getInfo()
+      })
     },
     getProductType() {
       const postData = {
@@ -353,8 +418,7 @@ export default {
       window.open(href, '_blank')
     },
     onSubmit() {
-      this.postData.pageno = 0
-      ;['name', 'updateDt'].forEach(v => {
+      ['name', 'updateDt'].forEach(v => {
         const index = this.searchCondition.findIndex(row => row.label === v)
         if (index > -1) {
           this.searchCondition.splice(index, 1)
@@ -363,6 +427,7 @@ export default {
           this.searchCondition.push({ label: v, value: this.form[v] })
         }
       })
+      this.postData.pageno = 0
       this.getInfo()
     },
     getInfo() {
@@ -394,21 +459,21 @@ export default {
           delete query[key]
         }
       }
-      console.log(query)
       this.$router.push({ path: '/demand-list', query: query })
+      this.loading = true
       this.$ajax.vpost('/queryBean', params).then(res => {
         this.productList = res.bean.data
         this.pageTotal = res.bean.total
-      }).catch(() => {})
+      }).catch(() => {}).finally(() => {
+        this.loading = false
+      })
     },
     handleSizeChange(val) {
-      console.log(`每页 ${val} 条`)
       this.postData.pagesize = val
       this.postData.pageno = 0
       this.getInfo()
     },
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`)
       this.postData.pageno = val - 1
       this.getInfo()
     }
@@ -419,13 +484,13 @@ export default {
 <style scoped>
   .main{width:1200px;margin: 0 auto;display: flex;}
   .nav-left{width:220px;flex:none;margin-right:20px;}
-  .nav-title{height:45px;line-height: 45px;padding:0 10px;background: #1890ff;color:#fff;font-size: 16px;font-weight: bold;margin-top:30px;}
+  .nav-title{height:45px;line-height: 45px;padding:0 10px;background: #1890ff;color:#fff;font-size: 16px;font-weight: bold;}
   .nav-content{border: 1px solid #e0e0e0;}
   .nav-list{line-height: 40px;padding:0 15px;border-bottom:1px dashed #e0e0e0;cursor: pointer;}
   .nav-list.active{background: #f9f9f9;position: relative;}
   .nav-list.active:before{content: '';display: block;width:3px;height:40px;position:absolute;top:0;left:0;background: #1890ff;}
-  .product-list{flex:auto;}
-  .search-box{border:1px solid #e0e0e0;border-radius: 2px;margin-top:30px;}
+  .product-list{flex:auto;width:950px;}
+  .search-box{border:1px solid #e0e0e0;border-radius: 2px;}
   .search-input{padding:0 10px;line-height: 40px;}
   .search-input span{padding:0 10px;}
   .search-filter{display: flex;height:40px;align-items: center;border-top:1px solid #e0e0e0;}
@@ -441,7 +506,8 @@ export default {
   .search-condition .condition .msgbox:hover{border-color:#f00;}
   .search-condition .condition .msgbox i{position:absolute;cursor: pointer;top:6px;right:6px;}
   .search-condition .btn{margin-left:auto;width:140px;flex: none;}
-  .list-box{display: flex;flex-wrap: wrap;margin-top:20px;}
+  .list-box{margin-top:20px;width:100%;}
+  .table-btn{margin-bottom:10px;text-align: right;}
   .list-none{text-align: center;font-size:20px;line-height:200px;width:100%;background: #f9f9f9;}
   .list-content{width:25%;}
   .list-detail{padding:20px;margin:5px;border:1px solid #e0e0e0;border-radius: 4px;cursor: pointer;}

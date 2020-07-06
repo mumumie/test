@@ -91,7 +91,6 @@ export default {
         id: this.$route.query.id
       }
       this.$ajax.vpost('getBean', params).then(res => {
-        console.log(res)
         this.productInfo = res.bean
       })
     }

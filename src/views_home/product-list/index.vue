@@ -4,6 +4,12 @@
     <Banner :class-active="3" />
     <div class="main">
       <div class="nav-left">
+        <div class="sketch-map">
+          <el-image v-for="url in typeName.picList" :key="url" :src="url" lazy></el-image>
+<!--          <p v-for="(pic,i) in typeName.picList" :key="i">-->
+<!--            <img :src="pic" alt="">-->
+<!--          </p>-->
+        </div>
         <div class="nav-title">产品分类</div>
         <div class="nav-content">
           <div
@@ -38,7 +44,7 @@
             <div class="title">{{ item.title }}</div>
             <div v-for="v in item.list" :key="v" class="condition"><span :class="{active: v === form[item.value]}" @click="searchHandle(item, v)">{{ v }}</span></div>
             <div class="input">
-              <el-input v-model="item.input[0]" size="mini" style="width:80px;" />
+              <el-input v-model="item.input[0]" size="mini" @input="(val) => item.input[1] = val" style="width:80px;" />
               -
               <el-input v-model="item.input[1]" size="mini" style="width:80px;" />
               <el-button type="primary" size="mini" style="margin-left:10px;" @click="searchHandle(item, Arrayfilter([item.input[0], item.input[1]]))">确定</el-button>
@@ -59,19 +65,42 @@
           </div>
         </div>
         <div class="list-box">
-          <div v-for="item in productList" :key="item.id" class="list-content">
-            <div class="list-detail" @click="toPath(item)">
-              <div>产品名称：{{ item.name }}</div>
-              <div v-for="{ value } in searchData" :key="value">{{ valueName[value] + ':' + item[value] }}</div>
-              <!--              <div>产品长度a：{{ item.length }}</div>-->
-              <!--              <div>产品宽度b：{{ item.width }}</div>-->
-              <!--              <div>产品厚度H：{{ item.height }}</div>-->
-              <!--              <div>a边伸筋（0，1）：{{ item.absj }}</div>-->
-              <!--              <div>b边伸筋（0，1）：{{ item.bbsj }}</div>-->
-              <!--              <div>生产地址：{{ item.productAddress }}</div>-->
-            </div>
+          <div class="table-btn">
+            <el-button size="mini" @click="setTable">设置表头</el-button>
           </div>
-          <div v-if="productList.length === 0" class="list-none">暂无数据！</div>
+          <el-table
+            v-if="productList.length !== 0"
+            :data="productList"
+            size="mini"
+            stripe
+            border
+            v-loading="loading"
+            :header-cell-style="{background:'#F3F4F7',color:'#555'}"
+            :row-style="{cursor:'pointer'}"
+            @row-click="toPath"
+            @selection-change="handleSelectionChange"
+            style="width: 100%">
+            <el-table-column
+              type="selection"
+              width="45">
+            </el-table-column>
+            <el-table-column
+              show-overflow-tooltip
+              header-align="center"
+              v-for="column in keyInfo.filter(v => v.show)"
+              :key="column.name"
+              :prop="column.name"
+              :label="column.zhName"
+              :min-width="column.zhName.length * 15 + 20">
+            </el-table-column>
+          </el-table>
+<!--          <div v-for="item in productList" :key="item.id" class="list-content">-->
+<!--            <div class="list-detail" @click="toPath(item)">-->
+<!--              <div>产品名称：{{ item.name }}</div>-->
+<!--              <div v-for="{ value } in searchData" :key="value">{{ valueName[value] + ':' + item[value] }}</div>-->
+<!--            </div>-->
+<!--          </div>-->
+          <div v-if="productList.length === 0 && !loading" class="list-none">暂无数据！</div>
         </div>
         <div class="pages-box">
           <el-pagination
@@ -86,11 +115,19 @@
         </div>
       </div>
     </div>
+<!--    上传文件-->
     <upload-file
       :type-name="postData.typeName"
       :switch-btn="switchBtn"
       @close="switchBtn = false"
       @success="importSuccess"
+    />
+<!--    设置表头-->
+    <set-table-header
+      :keyInfo="keyInfo"
+      :switch-btn="setSwitchBtn"
+      @close="setSwitchBtn = false"
+      @success="setSuccess"
     />
   </div>
 </template>
@@ -101,7 +138,8 @@ export default {
   components: {
     Header: () => import('../home/Header'),
     Banner: () => import('../home/Banner'),
-    uploadFile: () => import('./uploadFile')
+    uploadFile: () => import('./uploadFile'),
+    setTableHeader: () => import('./setTableHeader')
   },
   data() {
     return {
@@ -174,28 +212,23 @@ export default {
         b_bsj_rd2: 'b边伸筋直径rd2',
         b_bsj_rs1: 'b边伸筋间距rs1'
       },
-      switchBtn: false
+      switchBtn: false,
+      setSwitchBtn: false, // 表头设置
+      multipleSelection: [],
+      keyInfo: [], // 表字段
+      loading: false
     }
   },
   watch: {
-    // date(val) {
-    //   if (val && val.length === 2) {
-    //     this.form.date1 = val[0]
-    //     this.form.date2 = val[1] + 24 * 60 * 60 * 1000
-    //   } else {
-    //     this.form.date1 = ''
-    //     this.form.date2 = ''
-    //   }
-    // },
     productTypeList: {
       handler(val) {
         if (val.length > 0) {
           if (this.postData.typeName) {
             const row = val.find(v => v.className === this.postData.typeName)
             this.searchData = this.typeSearchData[row.className]
-            this.typeName = row.name
+            this.typeName = row
           } else {
-            this.typeName = val[0].name
+            this.typeName = val[0]
             this.postData.typeName = val[0].className
             this.searchData = this.typeSearchData[val[0].className]
           }
@@ -207,10 +240,45 @@ export default {
   created() {
     this.getProductType().then(() => {
       this.initSearchData()
-      this.getInfo()
+      this.getTableInfo().then(() => {
+        this.getInfo()
+      })
     })
   },
   methods: {
+    setSuccess(val) {
+      this.keyInfo.map(v => {
+        if (val.includes(v.name)) {
+          v.show = true
+        } else {
+          v.show = false
+        }
+      })
+      this.setSwitchBtn = false
+    },
+    setTable() {
+      this.setSwitchBtn = true
+    },
+    // 获取产品类型表字段
+    getTableInfo() {
+      const params = {
+        typeName: this.postData.typeName
+      }
+      return new Promise((resolve, reject) => {
+        this.$ajax.vpost('getTableInfo', params).then(res => {
+          this.keyInfo = res.bean.fieldProps.map(v => {
+            v.show = true
+            return v
+          })
+          resolve()
+        }).catch(err => {
+          reject(err)
+        })
+      })
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val
+    },
     importSuccess() {
       this.$message.success('导入成功！')
       this.switchBtn = false
@@ -259,6 +327,7 @@ export default {
         this.searchCondition.splice(this.searchCondition.findIndex(v => v.label === val), 1)
         this.searchData.find(v => v.value === val).input = [null, null]
       }
+      this.postData.pageno = 0
       this.getInfo()
     },
     Arrayfilter(arr) {
@@ -300,18 +369,21 @@ export default {
       if (val) {
         this.searchCondition.push({ label: row.value, value: val })
       }
+      this.postData.pageno = 0
       this.getInfo()
     },
     typeNameChange(row) {
       this.postData.typeName = row.className
-      this.typeName = row.name
+      this.typeName = row
       Object.keys(this.valueName).forEach(key => {
         this.form[key] = null
       })
       this.searchCondition = []
       this.searchData = this.typeSearchData[row.className]
       this.postData.pageno = 0
-      this.getInfo()
+      this.getTableInfo().then(() => {
+        this.getInfo()
+      })
     },
     getProductType() {
       const postData = {
@@ -377,64 +449,21 @@ export default {
           delete query[key]
         }
       }
-      // if (this.form.name) {
-      //   params.condition['name$regex'] = this.form.name
-      //   query.name = this.form.name
-      // } else {
-      //   delete query.name
-      // }
-      // if (this.form.productAddress) {
-      //   params.condition['productAddress$regex'] = this.form.productAddress
-      //   query.productAddress = this.form.productAddress
-      // } else {
-      //   delete query.productAddress
-      // }
-      // if (this.form.length) {
-      //   if (this.form.length.indexOf('-') > -1) {
-      //     const length = this.form.length.split('-')
-      //     params.condition['length$gte'] = length[0]
-      //     params.condition['length$lte'] = length[1]
-      //   } else if (this.form.length.indexOf('≥') > -1) {
-      //     params.condition['length$gte'] = this.form.length.replace(/[^0-9]/ig, '')
-      //   } else if (this.form.length.indexOf('≤') > -1) {
-      //     params.condition['length$gte'] = 0
-      //     params.condition['length$lte'] = this.form.length.replace(/[^0-9]/ig, '')
-      //   }
-      //   query.length = this.form.length
-      // } else {
-      //   delete query.length
-      // }
-      // if (this.form.width) {
-      //   const length = this.form.width.split('-')
-      //   params.condition['width$gte'] = length[1]
-      //   params.condition['width$lte'] = length[0]
-      //   query.width = this.form.width
-      // } else {
-      //   delete query.width
-      // }
-      // if (this.form.height) {
-      //   const length = this.form.height.split('-')
-      //   params.condition['height$gte'] = length[1]
-      //   params.condition['height$lte'] = length[0]
-      //   query.height = this.form.height
-      // } else {
-      //   delete query.height
-      // }
-      console.log(query)
       this.$router.push({ path: '/product-list', query: query })
+      this.loading = true
       this.$ajax.vpost('/queryBean', params).then(res => {
         this.productList = res.bean.data
         this.pageTotal = res.bean.total
-      }).catch(() => {})
+      }).catch(() => {}).finally(() => {
+        this.loading = false
+      })
     },
     handleSizeChange(val) {
-      console.log(`每页 ${val} 条`)
       this.postData.pagesize = val
       this.postData.pageno = 0
       this.getInfo()
     },
     handleCurrentChange(val) {
-      console.log(`当前页: ${val}`)
       this.postData.pageno = val - 1
       this.getInfo()
     }
@@ -445,13 +474,15 @@ export default {
 <style scoped>
   .main{width:1200px;margin: 0 auto;display: flex;}
   .nav-left{width:220px;flex:none;margin-right:20px;}
-  .nav-title{height:45px;line-height: 45px;padding:0 10px;background: #1890ff;color:#fff;font-size: 16px;font-weight: bold;margin-top:30px;}
+  .sketch-map{border:1px solid #e0e0e0;padding: 5px 5px 0}
+  .sketch-map .el-image{padding-bottom:5px;height:180px;width:100%;text-align: center;}
+  .nav-title{height:45px;line-height: 45px;padding:0 10px;background: #1890ff;color:#fff;font-size: 16px;font-weight: bold;margin-top:20px;}
   .nav-content{border: 1px solid #e0e0e0;}
   .nav-list{line-height: 40px;padding:0 15px;border-bottom:1px dashed #e0e0e0;cursor: pointer;}
   .nav-list.active{background: #f9f9f9;position: relative;}
   .nav-list.active:before{content: '';display: block;width:3px;height:40px;position:absolute;top:0;left:0;background: #1890ff;}
-  .product-list{flex:auto;}
-  .search-box{border:1px solid #e0e0e0;border-radius: 2px;margin-top:30px;}
+  .product-list{flex:auto;width:950px;}
+  .search-box{border:1px solid #e0e0e0;border-radius: 2px;}
   .search-input{padding:0 20px;line-height: 40px;}
   .search-input span{padding:0 10px;}
   .search-filter{display: flex;height:40px;align-items: center;border-top:1px solid #e0e0e0;}
@@ -467,7 +498,8 @@ export default {
   .search-condition .condition .msgbox:hover{border-color:#f00;}
   .search-condition .condition .msgbox i{position:absolute;cursor: pointer;top:6px;right:6px;}
   .search-condition .btn{margin-left:auto;width:140px;flex: none;}
-  .list-box{display: flex;flex-wrap: wrap;margin-top:20px;}
+  .list-box{margin-top:20px;width:100%;}
+  .table-btn{margin-bottom:10px;text-align: right;}
   .list-none{text-align: center;font-size:20px;line-height:200px;width:100%;background: #f9f9f9;}
   .list-content{width:25%;}
   .list-detail{padding:20px;margin:5px;border:1px solid #e0e0e0;border-radius: 4px;cursor: pointer;}
