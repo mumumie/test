@@ -7,10 +7,10 @@
     :before-close="handleClose"
   >
     <div>
-      <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全选</el-checkbox>
-      <div style="margin: 15px 0;"></div>
+      <el-checkbox v-model="checkAll" :indeterminate="isIndeterminate" @change="handleCheckAllChange">全选</el-checkbox>
+      <div style="margin: 15px 0;" />
       <el-checkbox-group v-model="list" @change="handleCheckedCitiesChange">
-        <el-checkbox v-for="key in headerList" :label="key.name" :key="key.name" style="margin-bottom:5px;">{{key.zhName}}</el-checkbox>
+        <el-checkbox v-for="key in headerList" :key="key.name" :label="key.name" style="margin-bottom:5px;">{{ key.zhName }}</el-checkbox>
       </el-checkbox-group>
     </div>
     <span slot="footer" class="dialog-footer">
@@ -58,6 +58,10 @@ export default {
       this.$emit('close')
     },
     submitSet() {
+      if (this.list.length === 0) {
+        this.$message.error('表头不能为空！')
+        return
+      }
       this.$emit('success', this.list)
     }
   }
