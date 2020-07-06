@@ -72,36 +72,50 @@
           </div>
           <el-table
             v-if="productList.length !== 0"
+            v-loading="loading"
             :data="productList"
             size="mini"
             stripe
             border
-            v-loading="loading"
             :header-cell-style="{background:'#F3F4F7',color:'#555'}"
             :row-style="{cursor:'pointer'}"
+            style="width: 100%"
             @row-click="toPath"
             @selection-change="handleSelectionChange"
-            style="width: 100%">
+          >
             <el-table-column
               type="selection"
-              width="45">
-            </el-table-column>
+              width="45"
+            />
             <el-table-column
-              show-overflow-tooltip
-              header-align="center"
               v-for="column in keyInfo.filter(v => v.show)"
               :key="column.name"
+              show-overflow-tooltip
+              header-align="center"
               :prop="column.name"
               :label="column.zhName"
-              :min-width="column.zhName.length * 15 + 20">
+              :min-width="column.zhName.length * 15 + 20"
+            >
+              <template slot-scope="scope">
+                <span v-if="column.zhName === '附件'">
+                  <a v-for="(file, i) in scope.row[column.name]" :key="i" :href="file" target="_blank" style="padding-right:10px;"><i class="el-icon-folder" />{{ filterFile(file) }}</a>
+                </span>
+                <span v-else-if="column.fieldType === 'RADIO'">{{ column.verifyDesc[scope.row[column.name]] }}</span>
+                <span v-else-if="column.fieldType === 'DATE'">
+                  {{ scope.row[column.name] | formatDate('yyyy-MM-dd hh : mm') }}
+                </span>
+                <span v-else>
+                  {{ scope.row[column.name] + (column.unit || '') }}
+                </span>
+              </template>
             </el-table-column>
           </el-table>
-<!--          <div v-for="item in productList" :key="item.id" class="list-content">-->
-<!--            <div class="list-detail" @click="toPath(item)">-->
-<!--              <div>产品名称：{{ item.name }}</div>-->
-<!--              <div v-for="{ value } in searchData" :key="value">{{ valueName[value] + ':' + item[value] }}</div>-->
-<!--            </div>-->
-<!--          </div>-->
+          <!--          <div v-for="item in productList" :key="item.id" class="list-content">-->
+          <!--            <div class="list-detail" @click="toPath(item)">-->
+          <!--              <div>产品名称：{{ item.name }}</div>-->
+          <!--              <div v-for="{ value } in searchData" :key="value">{{ valueName[value] + ':' + item[value] }}</div>-->
+          <!--            </div>-->
+          <!--          </div>-->
           <div v-if="productList.length === 0 && !loading" class="list-none">暂无数据！</div>
         </div>
         <div class="pages-box">
@@ -125,7 +139,7 @@
     />
     <!--    设置表头-->
     <set-table-header
-      :keyInfo="keyInfo"
+      :key-info="keyInfo"
       :switch-btn="setSwitchBtn"
       @close="setSwitchBtn = false"
       @success="setSuccess"
@@ -248,6 +262,14 @@ export default {
     })
   },
   methods: {
+    filterFile(val) {
+      if (val) {
+        const arr = val.split('/')
+        return arr[arr.length - 1]
+      } else {
+        return '-'
+      }
+    },
     setSuccess(val) {
       this.keyInfo.map(v => {
         if (val.includes(v.name)) {
@@ -460,6 +482,7 @@ export default {
         }
       }
       this.$router.push({ path: '/demand-list', query: query })
+      params.condition.gxType = 0
       this.loading = true
       this.$ajax.vpost('/queryBean', params).then(res => {
         this.productList = res.bean.data

@@ -5,10 +5,10 @@
     <div class="main">
       <div class="nav-left">
         <div class="sketch-map">
-          <el-image v-for="url in typeName.picList" :key="url" :src="url" lazy></el-image>
-<!--          <p v-for="(pic,i) in typeName.picList" :key="i">-->
-<!--            <img :src="pic" alt="">-->
-<!--          </p>-->
+          <el-image v-for="url in typeName.picList" :key="url" :src="url" lazy />
+          <!--          <p v-for="(pic,i) in typeName.picList" :key="i">-->
+          <!--            <img :src="pic" alt="">-->
+          <!--          </p>-->
         </div>
         <div class="nav-title">产品分类</div>
         <div class="nav-content">
@@ -44,7 +44,7 @@
             <div class="title">{{ item.title }}</div>
             <div v-for="v in item.list" :key="v" class="condition"><span :class="{active: v === form[item.value]}" @click="searchHandle(item, v)">{{ v }}</span></div>
             <div class="input">
-              <el-input v-model="item.input[0]" size="mini" @input="(val) => item.input[1] = val" style="width:80px;" />
+              <el-input v-model="item.input[0]" size="mini" style="width:80px;" @input="(val) => item.input[1] = val" />
               -
               <el-input v-model="item.input[1]" size="mini" style="width:80px;" />
               <el-button type="primary" size="mini" style="margin-left:10px;" @click="searchHandle(item, Arrayfilter([item.input[0], item.input[1]]))">确定</el-button>
@@ -70,36 +70,50 @@
           </div>
           <el-table
             v-if="productList.length !== 0"
+            v-loading="loading"
             :data="productList"
             size="mini"
             stripe
             border
-            v-loading="loading"
             :header-cell-style="{background:'#F3F4F7',color:'#555'}"
             :row-style="{cursor:'pointer'}"
+            style="width: 100%"
             @row-click="toPath"
             @selection-change="handleSelectionChange"
-            style="width: 100%">
+          >
             <el-table-column
               type="selection"
-              width="45">
-            </el-table-column>
+              width="45"
+            />
             <el-table-column
-              show-overflow-tooltip
-              header-align="center"
               v-for="column in keyInfo.filter(v => v.show)"
               :key="column.name"
+              show-overflow-tooltip
+              header-align="center"
               :prop="column.name"
               :label="column.zhName"
-              :min-width="column.zhName.length * 15 + 20">
+              :min-width="column.zhName.length * 15 + 20"
+            >
+              <template slot-scope="scope">
+                <span v-if="column.zhName === '附件'">
+                  <a v-for="(file, i) in scope.row[column.name]" :key="i" :href="file" target="_blank" style="padding-right:10px;"><i class="el-icon-folder" />{{ filterFile(file) }}</a>
+                </span>
+                <span v-else-if="column.fieldType === 'RADIO'">{{ column.verifyDesc[scope.row[column.name]] }}</span>
+                <span v-else-if="column.fieldType === 'DATE'">
+                  {{ scope.row[column.name] | formatDate('yyyy-MM-dd hh : mm') }}
+                </span>
+                <span v-else>
+                  {{ scope.row[column.name] + (column.unit || '') }}
+                </span>
+              </template>
             </el-table-column>
           </el-table>
-<!--          <div v-for="item in productList" :key="item.id" class="list-content">-->
-<!--            <div class="list-detail" @click="toPath(item)">-->
-<!--              <div>产品名称：{{ item.name }}</div>-->
-<!--              <div v-for="{ value } in searchData" :key="value">{{ valueName[value] + ':' + item[value] }}</div>-->
-<!--            </div>-->
-<!--          </div>-->
+          <!--          <div v-for="item in productList" :key="item.id" class="list-content">-->
+          <!--            <div class="list-detail" @click="toPath(item)">-->
+          <!--              <div>产品名称：{{ item.name }}</div>-->
+          <!--              <div v-for="{ value } in searchData" :key="value">{{ valueName[value] + ':' + item[value] }}</div>-->
+          <!--            </div>-->
+          <!--          </div>-->
           <div v-if="productList.length === 0 && !loading" class="list-none">暂无数据！</div>
         </div>
         <div class="pages-box">
@@ -115,16 +129,16 @@
         </div>
       </div>
     </div>
-<!--    上传文件-->
+    <!--    上传文件-->
     <upload-file
       :type-name="postData.typeName"
       :switch-btn="switchBtn"
       @close="switchBtn = false"
       @success="importSuccess"
     />
-<!--    设置表头-->
+    <!--    设置表头-->
     <set-table-header
-      :keyInfo="keyInfo"
+      :key-info="keyInfo"
       :switch-btn="setSwitchBtn"
       @close="setSwitchBtn = false"
       @success="setSuccess"
@@ -246,6 +260,14 @@ export default {
     })
   },
   methods: {
+    filterFile(val) {
+      if (val) {
+        const arr = val.split('/')
+        return arr[arr.length - 1]
+      } else {
+        return '-'
+      }
+    },
     setSuccess(val) {
       this.keyInfo.map(v => {
         if (val.includes(v.name)) {
@@ -450,6 +472,7 @@ export default {
         }
       }
       this.$router.push({ path: '/product-list', query: query })
+      params.condition.gxType = 1
       this.loading = true
       this.$ajax.vpost('/queryBean', params).then(res => {
         this.productList = res.bean.data

@@ -12,7 +12,6 @@
             <p v-for="(file, i) in productInfo[item.name]" :key="i">
               <a :href="file" target="_blank"><i class="el-icon-folder" />{{ filterFile(file) }}</a>
             </p>
-
           </div>
           <div v-else-if="item.fieldType === 'RADIO'">
             {{ item.verifyDesc[productInfo[item.name]] }}
