@@ -66,6 +66,7 @@
         </div>
         <div class="list-box">
           <div class="table-btn">
+            <el-button size="mini" @click="expotList">导出列表</el-button>
             <el-button size="mini" @click="setTable">设置表头</el-button>
           </div>
           <el-table
@@ -147,6 +148,7 @@
 </template>
 
 <script>
+import { baseUrl } from '@/utils/global'
 export default {
   name: 'ProductList',
   components: {
@@ -192,17 +194,17 @@ export default {
       ],
       typeSearchData: {
         P_dhkjl: [
-          { title: '长度a(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'length', input: [null, null] },
-          { title: '宽度b(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'width', input: [null, null] },
-          { title: '厚度H(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'height', input: [null, null] },
-          { title: '凹口深度h1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'ak_3', input: [null, null] },
-          { title: '伸出筋直径rd1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_1', input: [null, null] },
-          { title: '伸出筋根数rm', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_2', input: [null, null] }
+          { title: '宽度b(mm)', list: ['≤300', '300-350', '350-400', '400-450', '≥450'], value: 'width', input: [null, null] },
+          { title: '厚度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
+          { title: '长度L(mm)', list: ['≤5430', '5430-6430', '6430-7430', '7430-8430', '≥8430'], value: 'length', input: [null, null] },
+          { title: '凹口深度h1(mm)', list: ['≤50', '50-100', '100-150', '150-200', '≥200'], value: 'ak_3', input: [null, null] },
+          { title: '伸出筋直径rd1', list: ['≤20', '20-22', '22-25', '25-28', '≥28'], value: 'scj_1', input: [null, null] },
+          { title: '伸出筋根数rm', list: ['≤2', '2-3', '3-4', '4-5', '≥5'], value: 'scj_2', input: [null, null] }
         ],
         P_dhlb: [
-          { title: '长度a(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'length', input: [null, null] },
-          { title: '宽度b(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'width', input: [null, null] },
-          { title: '厚度H(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'height', input: [null, null] },
+          { title: '宽度b(mm)', list: ['≤300', '300-350', '350-400', '400-450', '≥450'], value: 'width', input: [null, null] },
+          { title: '厚度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
+          { title: '长度L(mm)', list: ['≤5430', '5430-6430', '6430-7430', '7430-8430', '≥8430'], value: 'length', input: [null, null] },
           { title: '保护层厚度rh1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'bhc_rh1', input: [null, null] },
           { title: 'a边伸筋直径rd1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'a_bsj_rd1', input: [null, null] },
           { title: 'a边伸筋间距rs1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'a_bsj_rs1', input: [null, null] },
@@ -230,7 +232,8 @@ export default {
       setSwitchBtn: false, // 表头设置
       multipleSelection: [],
       keyInfo: [], // 表字段
-      loading: false
+      loading: false,
+      bodyUrl: ''
     }
   },
   watch: {
@@ -260,6 +263,14 @@ export default {
     })
   },
   methods: {
+    expotList() {
+      const params = JSON.parse(JSON.stringify(this.bodyUrl))
+      delete params.pagesize
+      delete params.pageno
+      const query = encodeURI(JSON.stringify(params))
+      // console.log(`${baseUrl}/queryBeanExport?boy=${query}`)
+      window.open(`${baseUrl}/queryBeanExport?body=${query}`, '_blank')
+    },
     filterFile(val) {
       if (val) {
         const arr = val.split('/')
@@ -473,6 +484,7 @@ export default {
       }
       this.$router.push({ path: '/product-list', query: query })
       params.condition.gxType = 1
+      this.bodyUrl = params
       this.loading = true
       this.$ajax.vpost('/queryBean', params).then(res => {
         this.productList = res.bean.data
