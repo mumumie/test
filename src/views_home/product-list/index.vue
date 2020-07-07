@@ -5,7 +5,7 @@
     <div class="main">
       <div class="nav-left">
         <div class="sketch-map">
-          <el-image v-for="url in typeName.picList" :key="url" :src="url" lazy />
+          <el-image v-for="url in typeName.picList" :key="url" :src="url" :preview-src-list="typeName.picList" lazy />
           <!--          <p v-for="(pic,i) in typeName.picList" :key="i">-->
           <!--            <img :src="pic" alt="">-->
           <!--          </p>-->
