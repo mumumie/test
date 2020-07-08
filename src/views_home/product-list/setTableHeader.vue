@@ -36,9 +36,10 @@ export default {
   watch: {
     switchBtn: {
       handler(val) {
-        this.headerList = JSON.parse(JSON.stringify(this.keyInfo))
-        this.list = this.keyInfo.filter(v => v.show).map(vk => vk.name)
+        this.headerList = JSON.parse(JSON.stringify(this.keyInfo)).filter(v => v.name !== 'name')
+        this.list = this.headerList.filter(v => v.show).map(vk => vk.name)
         this.checkAll = this.list.length === this.headerList.length
+        this.isIndeterminate = this.list.length > 0 && this.list.length < this.headerList.length
       },
       immediate: true
     }
@@ -58,11 +59,11 @@ export default {
       this.$emit('close')
     },
     submitSet() {
-      if (this.list.length === 0) {
-        this.$message.error('表头不能为空！')
-        return
-      }
-      this.$emit('success', this.list)
+      // if (this.list.length === 0) {
+      //   this.$message.error('表头不能为空！')
+      //   return
+      // }
+      this.$emit('success', ['name', ...this.list])
     }
   }
 }

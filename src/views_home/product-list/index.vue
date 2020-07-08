@@ -26,10 +26,18 @@
       <div class="product-list">
         <div class="search-box">
           <div class="search-input">
-            <span>产品名称</span>
-            <el-input v-model="form.name" size="mini" style="width:200px;" placeholder="关键字" />
-            <span>生产地址</span>
-            <el-input v-model="form.productAddress" size="mini" style="width:200px;" placeholder="关键字" />
+            <span>产品名称:</span>
+            <el-input v-model="form.name" size="mini" style="width:200px;" placeholder="请输入产品名称" />
+            <span>生产厂家:</span>
+            <!--            <el-input v-model="form.productAddress" size="mini" style="width:200px;" placeholder="关键字" />-->
+            <el-select v-model="form.productAddress" size="mini" clearable placeholder="请选择生产厂家">
+              <el-option
+                v-for="item in factoryList"
+                :key="item"
+                :label="item"
+                :value="item"
+              />
+            </el-select>
             <el-button type="primary" size="mini" style="margin-left:20px;" @click="onSubmit">搜索</el-button>
             <el-button type="primary" icon="el-icon-download" size="mini" style="margin-left:20px;" @click="exportFile">下载构件excel模板</el-button>
             <el-button type="primary" icon="el-icon-upload2" size="mini" style="margin-left:20px;" @click="importFile">导入构件</el-button>
@@ -89,11 +97,12 @@
             <el-table-column
               v-for="column in keyInfo.filter(v => v.show)"
               :key="column.name"
+              align="center"
               show-overflow-tooltip
               header-align="center"
               :prop="column.name"
               :label="column.zhName"
-              :min-width="column.zhName.length * 15 + 20"
+              :min-width="column.name === 'name' ? 150 : column.zhName.length * 15 + 20"
             >
               <template slot-scope="scope">
                 <span v-if="column.zhName === '附件'">
@@ -233,7 +242,8 @@ export default {
       multipleSelection: [],
       keyInfo: [], // 表字段
       loading: false,
-      bodyUrl: ''
+      bodyUrl: '',
+      factoryList: [' 工厂A', ' 工厂B', ' 工厂C', ' 工厂D', ' 工厂E']
     }
   },
   watch: {
@@ -299,7 +309,10 @@ export default {
       }
       return new Promise((resolve, reject) => {
         this.$ajax.vpost('getTableInfo', params).then(res => {
-          this.keyInfo = res.bean.fieldProps.map(v => {
+          const list = res.bean.fieldProps.filter(v => v.name !== 'name')
+          const name = res.bean.fieldProps.filter(v => v.name === 'name')
+          this.keyInfo = [...name, ...list]
+          this.keyInfo.map(v => {
             v.show = true
             return v
           })
@@ -518,7 +531,7 @@ export default {
   .nav-list.active:before{content: '';display: block;width:3px;height:40px;position:absolute;top:0;left:0;background: #1890ff;}
   .product-list{flex:auto;width:950px;}
   .search-box{border:1px solid #e0e0e0;border-radius: 2px;}
-  .search-input{padding:0 20px;line-height: 40px;}
+  .search-input{padding:6px 20px;}
   .search-input span{padding:0 10px;}
   .search-filter{display: flex;height:40px;align-items: center;border-top:1px solid #e0e0e0;}
   .search-filter .title{ width:120px;flex:none;padding-left:10px;background: #f8f8f8;line-height: 39px;border-right:1px solid #e0e0e0;}
