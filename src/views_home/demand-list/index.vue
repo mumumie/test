@@ -68,6 +68,7 @@
         </div>
         <div class="list-box">
           <div class="table-btn">
+            <el-button size="mini" @click="statisticReport">统计报表</el-button>
             <el-button size="mini" @click="matchProduct">匹配产品</el-button>
             <el-button size="mini" @click="expotList">导出列表</el-button>
             <el-button size="mini" @click="setTable">设置表头</el-button>
@@ -267,6 +268,17 @@ export default {
     })
   },
   methods: {
+    statisticReport() {
+      const params = {
+        typeName: this.postData.typeName,
+        condition: {
+          gxType: 0
+        }
+      }
+      const query = encodeURI(JSON.stringify(params))
+      // console.log(`${baseUrl}/queryBeanExport?boy=${query}`)
+      window.open(`${baseUrl}/excel/getStatistics?body=${query}`, '_blank')
+    },
     // 需求产品匹配
     matchProduct() {
       if (this.multipleSelection.length === 0) {
