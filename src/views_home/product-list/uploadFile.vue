@@ -84,7 +84,7 @@ export default {
       const formData = new FormData()
       formData.append('file', this.fileList[0].raw)
       formData.append('typeName', this.typeName)
-      axios.post(`${baseUrl}/excel/importExcelData`, formData, { 'Content-Type': 'multipart/form-data' }).then(res => {
+      axios.post(`${baseUrl}/importExcelData`, formData, { 'Content-Type': 'multipart/form-data' }).then(res => {
         if (res.data.retCode === 0) {
           this.$emit('success')
         } else {

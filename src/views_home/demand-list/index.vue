@@ -199,15 +199,15 @@ export default {
       typeSearchData: {
         P_dhkjl: [
           { title: '宽度b(mm)', list: ['≤300', '300-350', '350-400', '400-450', '≥450'], value: 'width', input: [null, null] },
-          { title: '厚度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
+          { title: '高度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
           { title: '长度L(mm)', list: ['≤5430', '5430-6430', '6430-7430', '7430-8430', '≥8430'], value: 'length', input: [null, null] },
-          { title: '凹口深度h1(mm)', list: ['≤50', '50-100', '100-150', '150-200', '≥200'], value: 'ak_3', input: [null, null] }
+          { title: '凹口深度h1', list: ['≤50', '50-100', '100-150', '150-200', '≥200'], value: 'ak_3', input: [null, null] }
           // { title: '伸出筋直径rd1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_1', input: [null, null] },
           // { title: '伸出筋根数rm', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_2', input: [null, null] },
         ],
         P_dhlb: [
           { title: '宽度b(mm)', list: ['≤300', '300-350', '350-400', '400-450', '≥450'], value: 'width', input: [null, null] },
-          { title: '厚度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
+          { title: '高度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
           { title: '长度L(mm)', list: ['≤5430', '5430-6430', '6430-7430', '7430-8430', '≥8430'], value: 'length', input: [null, null] }
           // { title: '保护层厚度rh1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'bhc_rh1', input: [null, null] },
           // { title: 'a边伸筋直径rd1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'a_bsj_rd1', input: [null, null] },
