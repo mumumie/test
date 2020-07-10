@@ -42,7 +42,7 @@ export default {
         pagesize: 4,
         pageno: 0
       }
-      this.$ajax.vpost('/queryBean', postData).then(res => {
+      this.$ajax.vpost('/nonauth/queryBean', postData).then(res => {
         this.list = res.bean.data
       }).catch(() => {})
     }

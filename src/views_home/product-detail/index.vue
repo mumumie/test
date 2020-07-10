@@ -66,7 +66,7 @@ export default {
         typeName: this.$route.query.typeName
       }
       return new Promise((resolve, reject) => {
-        this.$ajax.vpost('getTableInfo', params).then(res => {
+        this.$ajax.vpost('/nonauth/getTableInfo', params).then(res => {
           // console.log(res.bean.fieldProps)
           // res.bean.fieldProps.forEach((v, i) => {
           //   console.log(i / 2)
@@ -89,7 +89,7 @@ export default {
         typeName: this.$route.query.typeName,
         id: this.$route.query.id
       }
-      this.$ajax.vpost('getBean', params).then(res => {
+      this.$ajax.vpost('/nonauth/getBean', params).then(res => {
         this.productInfo = res.bean
       })
     }

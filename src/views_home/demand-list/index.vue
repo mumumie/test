@@ -22,7 +22,7 @@
           <div class="search-input">
             <span>产品名称:</span>
             <el-input v-model="form.name" size="mini" style="width:200px;" placeholder="请输入产品名称" />
-            <span>供货时间:</span>
+            <span>使用时间:</span>
             <el-date-picker
               v-model="form.updateDt"
               size="mini"
@@ -68,6 +68,7 @@
         </div>
         <div class="list-box">
           <div class="table-btn">
+            <el-button size="mini" @click="matchProduct">匹配产品</el-button>
             <el-button size="mini" @click="expotList">导出列表</el-button>
             <el-button size="mini" @click="setTable">设置表头</el-button>
           </div>
@@ -229,7 +230,7 @@ export default {
         a_bsj_rs1: 'a边伸筋间距rs1',
         b_bsj_rd2: 'b边伸筋直径rd2',
         b_bsj_rs1: 'b边伸筋间距rs1',
-        updateDt: '供货时间'
+        updateDt: '使用时间'
       },
       switchBtn: false,
       setSwitchBtn: false, // 表头设置
@@ -266,13 +267,29 @@ export default {
     })
   },
   methods: {
+    // 需求产品匹配
+    matchProduct() {
+      if (this.multipleSelection.length === 0) {
+        this.$message.error('请选择需求产品进行匹配！')
+        return
+      } else {
+        const params = {
+          typeName: this.postData.typeName,
+          rate: 0.9
+        }
+        params.idList = this.multipleSelection.map(v => v.id)
+        const query = encodeURI(JSON.stringify(params))
+        window.open(`${baseUrl}/excel/matchProduct?body=${query}`, '_blank')
+      }
+    },
+    // 导出列表
     expotList() {
       const params = JSON.parse(JSON.stringify(this.bodyUrl))
       delete params.pagesize
       delete params.pageno
       const query = encodeURI(JSON.stringify(params))
       // console.log(`${baseUrl}/queryBeanExport?boy=${query}`)
-      window.open(`${baseUrl}/queryBeanExport?body=${query}`, '_blank')
+      window.open(`${baseUrl}/excel/queryBeanExport?body=${query}`, '_blank')
     },
     filterFile(val) {
       if (val) {
@@ -301,7 +318,7 @@ export default {
         typeName: this.postData.typeName
       }
       return new Promise((resolve, reject) => {
-        this.$ajax.vpost('getTableInfo', params).then(res => {
+        this.$ajax.vpost('/nonauth/getTableInfo', params).then(res => {
           const list = res.bean.fieldProps.filter(v => v.name !== 'name')
           const name = res.bean.fieldProps.filter(v => v.name === 'name')
           this.keyInfo = [...name, ...list]
@@ -328,7 +345,8 @@ export default {
     },
     // 导出文件
     exportFile() {
-      window.open(`http://139.224.234.131:8088/getExcelTemp?typeName=${this.postData.typeName}`, '_blank')
+      const query = encodeURI(JSON.stringify({ typeName: this.postData.typeName }))
+      window.open(`${baseUrl}/excel/getExcelTemp?body=${query}`, '_blank')
     },
     initSearchData() {
       const query = this.$route.query
@@ -435,7 +453,7 @@ export default {
         pageno: 0
       }
       return new Promise((resolve, reject) => {
-        this.$ajax.vpost('/queryBean', postData).then(res => {
+        this.$ajax.vpost('/nonauth/queryBean', postData).then(res => {
           this.productTypeList = res.bean.data
           resolve()
         }).catch((err) => {
@@ -477,8 +495,8 @@ export default {
           if (key === 'name' || key === 'productAddress') {
             params.condition[`${key}$regex`] = this.form[key]
           } else if (key === 'updateDt') {
-            params.condition[`${key}$gte`] = this.form[key][0]
-            params.condition[`${key}$lte`] = this.form[key][1]
+            params.condition[`useStartTime$gte`] = this.form[key][0] * 1
+            params.condition[`useEndTime$lte`] = this.form[key][1] * 1 + 3600 * 24 * 1000 - 1
             query[key] = this.form[key].join()
           } else {
             if (this.form[key].indexOf('-') > -1) {
@@ -500,7 +518,7 @@ export default {
       params.condition.gxType = 0
       this.bodyUrl = params
       this.loading = true
-      this.$ajax.vpost('/queryBean', params).then(res => {
+      this.$ajax.vpost('/nonauth/queryBean', params).then(res => {
         this.productList = res.bean.data
         this.pageTotal = res.bean.total
       }).catch(() => {}).finally(() => {

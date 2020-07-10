@@ -29,8 +29,8 @@
             <span>产品名称:</span>
             <el-input v-model="form.name" size="mini" style="width:200px;" placeholder="请输入产品名称" />
             <span>生产厂家:</span>
-            <!--            <el-input v-model="form.productAddress" size="mini" style="width:200px;" placeholder="关键字" />-->
-            <el-select v-model="form.productAddress" size="mini" clearable placeholder="请选择生产厂家">
+            <!--            <el-input v-model="form.supplyFactory" size="mini" style="width:200px;" placeholder="关键字" />-->
+            <el-select v-model="form.supplyFactory" size="mini" clearable placeholder="请选择生产厂家">
               <el-option
                 v-for="item in factoryList"
                 :key="item"
@@ -170,7 +170,7 @@ export default {
     return {
       form: {
         name: this.$route.query.name || '',
-        productAddress: this.$route.query.productAddress || '',
+        supplyFactory: this.$route.query.supplyFactory || '',
         length: this.$route.query.length || '',
         width: this.$route.query.width || '',
         height: this.$route.query.height || '',
@@ -194,9 +194,9 @@ export default {
       productTypeList: [],
       typeName: '',
       searchData: [
-        { title: '长度a(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'length', input: [null, null] },
-        { title: '宽度b(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'width', input: [null, null] },
-        { title: '厚度H(毫米)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'height', input: [null, null] },
+        { title: '长度a(mm)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'length', input: [null, null] },
+        { title: '宽度b(mm)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'width', input: [null, null] },
+        { title: '高度h(mm)', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'height', input: [null, null] },
         { title: '凹口深度h1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'ak_3', input: [null, null] },
         { title: '伸出筋直径rd1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_1', input: [null, null] },
         { title: '伸出筋根数rm', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'scj_2', input: [null, null] }
@@ -204,15 +204,15 @@ export default {
       typeSearchData: {
         P_dhkjl: [
           { title: '宽度b(mm)', list: ['≤300', '300-350', '350-400', '400-450', '≥450'], value: 'width', input: [null, null] },
-          { title: '厚度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
+          { title: '高度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
           { title: '长度L(mm)', list: ['≤5430', '5430-6430', '6430-7430', '7430-8430', '≥8430'], value: 'length', input: [null, null] },
-          { title: '凹口深度h1(mm)', list: ['≤50', '50-100', '100-150', '150-200', '≥200'], value: 'ak_3', input: [null, null] },
+          { title: '凹口深度h1', list: ['≤50', '50-100', '100-150', '150-200', '≥200'], value: 'ak_3', input: [null, null] },
           { title: '伸出筋直径rd1', list: ['≤20', '20-22', '22-25', '25-28', '≥28'], value: 'scj_1', input: [null, null] },
           { title: '伸出筋根数rm', list: ['≤2', '2-3', '3-4', '4-5', '≥5'], value: 'scj_2', input: [null, null] }
         ],
         P_dhlb: [
           { title: '宽度b(mm)', list: ['≤300', '300-350', '350-400', '400-450', '≥450'], value: 'width', input: [null, null] },
-          { title: '厚度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
+          { title: '高度h(mm)', list: ['≤470', '470-570', '570-670', '670-770', '≥770'], value: 'height', input: [null, null] },
           { title: '长度L(mm)', list: ['≤5430', '5430-6430', '6430-7430', '7430-8430', '≥8430'], value: 'length', input: [null, null] },
           { title: '保护层厚度rh1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'bhc_rh1', input: [null, null] },
           { title: 'a边伸筋直径rd1', list: ['≤8', '8-15', '15-20', '20-30', '≥30'], value: 'a_bsj_rd1', input: [null, null] },
@@ -223,11 +223,11 @@ export default {
       },
       searchCondition: [],
       valueName: {
-        length: '长度a',
+        length: '长度L',
         width: '宽度b',
-        height: '厚度H',
+        height: '高度h',
         name: '产品名称',
-        productAddress: '生产地址',
+        supplyFactory: '生产厂家',
         ak_3: '凹口深度h1',
         scj_1: '伸出筋直径rd1',
         scj_2: '伸出筋根数rm',
@@ -243,7 +243,7 @@ export default {
       keyInfo: [], // 表字段
       loading: false,
       bodyUrl: '',
-      factoryList: [' 工厂A', ' 工厂B', ' 工厂C', ' 工厂D', ' 工厂E']
+      factoryList: [' 工厂A', ' 工厂B', ' 工厂C', ' 工厂D', ' 工厂E', 've']
     }
   },
   watch: {
@@ -279,7 +279,7 @@ export default {
       delete params.pageno
       const query = encodeURI(JSON.stringify(params))
       // console.log(`${baseUrl}/queryBeanExport?boy=${query}`)
-      window.open(`${baseUrl}/queryBeanExport?body=${query}`, '_blank')
+      window.open(`${baseUrl}/excel/queryBeanExport?body=${query}`, '_blank')
     },
     filterFile(val) {
       if (val) {
@@ -308,7 +308,7 @@ export default {
         typeName: this.postData.typeName
       }
       return new Promise((resolve, reject) => {
-        this.$ajax.vpost('getTableInfo', params).then(res => {
+        this.$ajax.vpost('/nonauth/getTableInfo', params).then(res => {
           const list = res.bean.fieldProps.filter(v => v.name !== 'name')
           const name = res.bean.fieldProps.filter(v => v.name === 'name')
           this.keyInfo = [...name, ...list]
@@ -335,7 +335,8 @@ export default {
     },
     // 导出文件
     exportFile() {
-      window.open(`http://139.224.234.131:8088/getExcelTemp?typeName=${this.postData.typeName}`, '_blank')
+      const query = encodeURI(JSON.stringify({ typeName: this.postData.typeName }))
+      window.open(`${baseUrl}/excel/getExcelTemp?body=${query}`, '_blank')
     },
     initSearchData() {
       const query = this.$route.query
@@ -365,7 +366,7 @@ export default {
         this.searchData.map(v => {
           v.input = [null, null]
         })
-      } else if (val === 'name' || val === 'productAddress') {
+      } else if (val === 'name' || val === 'supplyFactory') {
         this.form[val] = ''
         this.searchCondition.splice(this.searchCondition.findIndex(v => v.label === val), 1)
       } else {
@@ -438,7 +439,7 @@ export default {
         pageno: 0
       }
       return new Promise((resolve, reject) => {
-        this.$ajax.vpost('/queryBean', postData).then(res => {
+        this.$ajax.vpost('/nonauth/queryBean', postData).then(res => {
           this.productTypeList = res.bean.data
           resolve()
         }).catch((err) => {
@@ -459,7 +460,7 @@ export default {
     },
     onSubmit() {
       this.postData.pageno = 0
-      ;['name', 'productAddress'].forEach(v => {
+      ;['name', 'supplyFactory'].forEach(v => {
         const index = this.searchCondition.findIndex(row => row.label === v)
         if (index > -1) {
           this.searchCondition.splice(index, 1)
@@ -476,7 +477,7 @@ export default {
       query.type = params.typeName
       for (const key in this.form) {
         if (this.form[key]) {
-          if (key === 'name' || key === 'productAddress') {
+          if (key === 'name' || key === 'supplyFactory') {
             params.condition[`${key}$regex`] = this.form[key]
           } else {
             if (this.form[key].indexOf('-') > -1) {
@@ -499,7 +500,7 @@ export default {
       params.condition.gxType = 1
       this.bodyUrl = params
       this.loading = true
-      this.$ajax.vpost('/queryBean', params).then(res => {
+      this.$ajax.vpost('/nonauth/queryBean', params).then(res => {
         this.productList = res.bean.data
         this.pageTotal = res.bean.total
       }).catch(() => {}).finally(() => {
