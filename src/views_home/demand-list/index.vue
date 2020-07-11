@@ -68,10 +68,17 @@
         </div>
         <div class="list-box">
           <div class="table-btn">
-            <el-button size="mini" @click="statisticReport">统计报表</el-button>
-            <el-button size="mini" @click="matchProduct">匹配产品</el-button>
-            <el-button size="mini" @click="expotList">导出列表</el-button>
-            <el-button size="mini" @click="setTable">设置表头</el-button>
+            <div style="display:flex;">
+              <el-input v-model="rate" size="mini" placeholder="浮动范围" style="width:150px;">
+                <template slot="append">%</template>
+              </el-input>
+              <el-button style="margin-left:10px;" size="mini" @click="matchProduct">匹配产品</el-button>
+            </div>
+            <div style="margin-left:auto;">
+              <el-button size="mini" @click="statisticReport">统计报表</el-button>
+              <el-button size="mini" @click="expotList">导出列表</el-button>
+              <el-button size="mini" @click="setTable">设置表头</el-button>
+            </div>
           </div>
           <el-table
             v-if="productList.length !== 0"
@@ -238,7 +245,8 @@ export default {
       multipleSelection: [],
       keyInfo: [], // 表字段
       loading: false,
-      bodyUrl: ''
+      bodyUrl: '',
+      rate: 10
     }
   },
   watch: {
@@ -285,9 +293,17 @@ export default {
         this.$message.error('请选择需求产品进行匹配！')
         return
       } else {
+        const rate = this.rate
+        if (isNaN(rate)) {
+          this.$message.error('请输入数字！')
+          return
+        } else if (rate <= 0) {
+          this.$message.error('请输入大于0的数字！')
+          return
+        }
         const params = {
           typeName: this.postData.typeName,
-          rate: 0.9
+          rate: rate / 100
         }
         params.idList = this.multipleSelection.map(v => v.id)
         const query = encodeURI(JSON.stringify(params))
@@ -576,7 +592,7 @@ export default {
   .search-condition .condition .msgbox i{position:absolute;cursor: pointer;top:6px;right:6px;}
   .search-condition .btn{margin-left:auto;width:140px;flex: none;}
   .list-box{margin-top:20px;width:100%;}
-  .table-btn{margin-bottom:10px;text-align: right;}
+  .table-btn{margin-bottom:10px;display: flex;}
   .list-none{text-align: center;font-size:20px;line-height:200px;width:100%;background: #f9f9f9;}
   .list-content{width:25%;}
   .list-detail{padding:20px;margin:5px;border:1px solid #e0e0e0;border-radius: 4px;cursor: pointer;}
